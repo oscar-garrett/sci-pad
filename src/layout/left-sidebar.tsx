@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar"
+import { SidebarContent, SidebarHeader } from "@/components/ui/sidebar"
 import { ChevronRightIcon, FileIcon, FolderIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
@@ -77,9 +77,11 @@ const renderItem = (fileNode: FileNode) => {
 
 const FileTree: React.FC<{ targetPath: string }> = ({ targetPath }) => {
     const [treeData, setTreeData] = useState<FileNode[]>([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         async function loadFiles() {
+            setLoading(true);
             try {
                 // Fetch the file flat array from the Rust backend
                 const fileArray: FileNode[] = await invoke("get_file_tree", { targetPath });
@@ -90,6 +92,8 @@ const FileTree: React.FC<{ targetPath: string }> = ({ targetPath }) => {
                 setTreeData(nestedTree);
             } catch (error) {
                 console.error("failed to load file tree:", error);
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -97,6 +101,8 @@ const FileTree: React.FC<{ targetPath: string }> = ({ targetPath }) => {
             loadFiles();
         }
     }, [targetPath]);
+
+    if (loading) return <div>Loading files...</div>
 
     return (
         <div className="flex flex-col gap-1">
@@ -107,14 +113,14 @@ const FileTree: React.FC<{ targetPath: string }> = ({ targetPath }) => {
 
 function LeftSidebar() {
     return (
-        <Sidebar>
-            <SidebarHeader>
-                <h1>Explorer</h1>
-            </SidebarHeader>
-            <SidebarContent>
-                <FileTree targetPath="C:\Users\oscar\software_projects"/>
-            </SidebarContent>
-        </Sidebar>
+        <div className="flex flex-col">
+        <SidebarHeader>
+            <h1>Explorer</h1>
+        </SidebarHeader>
+        <SidebarContent>
+            <FileTree targetPath="C:\Users\oscar\software_projects"/>
+        </SidebarContent>
+        </div>
     )
 }
 
