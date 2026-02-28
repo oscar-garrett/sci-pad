@@ -114,12 +114,12 @@ const FileTree: React.FC<{ targetPath: string }> = ({ targetPath }) => {
 function LeftSidebar() {
     return (
         <div className="flex flex-col">
-        <SidebarHeader>
-            <h1>Explorer</h1>
-        </SidebarHeader>
-        <SidebarContent>
-            <FileTree targetPath="C:\Users\oscar\software_projects"/>
-        </SidebarContent>
+            <SidebarHeader>
+                <h1>Explorer</h1>
+            </SidebarHeader>
+            <SidebarContent className="h-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <FileTree targetPath="C:\Users\oscar\software_projects"/>
+            </SidebarContent>
         </div>
     )
 }
