@@ -1,10 +1,10 @@
 import { Input } from "@/components/ui/input";
 import { SidebarContent, SidebarHeader } from "@/components/ui/sidebar"
-import FileTree from "@/features/explorer/file-explorer";
+import FileTree from "@/features/explorers/file-explorer";
 import { useWorkspaceStore } from "@/store/workspace";
-import ProtocolExplorer from "../protocols/protocol-explorer";
-import DatabaseExplorer from "../databases/database-explorer";
-import GraphExplorer from "../graph/graph-explorer";
+import ProtocolExplorer from "../explorers/protocol-explorer";
+import DatabaseExplorer from "../explorers/database-explorer";
+import GraphExplorer from "../explorers/graph-explorer";
 
 
 function LeftSidebar() {

@@ -92,8 +92,12 @@ function Workspace() {
         
         <ResizableHandle withHandle/>
         
-        <ResizablePanel defaultSize="0"
+        <ResizablePanel
           id="right-panel"
+          defaultSize="0%"
+          panelRef={rightPanelRef}
+          collapsible
+          minSize={120}
           >
           <RightSidebar/>
         </ResizablePanel>

@@ -3,8 +3,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronRightIcon, FileIcon, FolderIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { useExplorerStore } from "@/store/explorer";
 
-interface FileNode {
+export interface FileNode {
     name: string,
     path: string, 
     is_dir: boolean,
@@ -38,10 +39,13 @@ function buildTree(flatList: FileNode[]): FileNode[] {
     return rootNodes;
 }
 
-const renderItem = (fileNode: FileNode) => {
+const FileTreeNode: React.FC<{ fileNode: FileNode}> = ({ fileNode }) => {
+    // Track if this specific folder is open
+    const [isOpen, setIsOpen] = useState(false)
+
     if (fileNode.is_dir) {
         return (
-        <Collapsible key={fileNode.name}>
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
@@ -54,9 +58,13 @@ const renderItem = (fileNode: FileNode) => {
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="style-lyra:ml-4 mt-1 ml-5">
-            <div className="flex flex-col gap-1">
-              {fileNode.children?.map((child) => renderItem(child))}
-            </div>
+            {isOpen && (
+                <div className="flex flex-col gap-1">
+                    {fileNode.children?.map((child) => (
+                        <FileTreeNode key={child.path} fileNode={child}/>
+                    ))}
+                </div>
+            )}
           </CollapsibleContent>
         </Collapsible>
         )
@@ -75,11 +83,13 @@ const renderItem = (fileNode: FileNode) => {
 }
 
 const FileTree: React.FC<{ targetPath: string }> = ({ targetPath }) => {
-    const [treeData, setTreeData] = useState<FileNode[]>([]);
+    const { treeCache, setTreeCache } = useExplorerStore();
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         async function loadFiles() {
+            if (treeCache.length > 0) return;
+
             setLoading(true);
             try {
                 // Fetch the file flat array from the Rust backend
@@ -88,7 +98,7 @@ const FileTree: React.FC<{ targetPath: string }> = ({ targetPath }) => {
                 // Convert to nested tree
                 const nestedTree = buildTree(fileArray);
 
-                setTreeData(nestedTree);
+                setTreeCache(nestedTree);
             } catch (error) {
                 console.error("failed to load file tree:", error);
             } finally {
@@ -99,13 +109,15 @@ const FileTree: React.FC<{ targetPath: string }> = ({ targetPath }) => {
         if (targetPath) {
             loadFiles();
         }
-    }, [targetPath]);
+    }, [targetPath, treeCache.length]);
 
-    if (loading) return <div>Loading files...</div>
+    if (loading && treeCache.length === 0) return <div>Loading files...</div>
 
     return (
         <div className="flex flex-col gap-1">
-            {treeData.map((item) => renderItem(item))}
+            {treeCache.map((item) => (
+                <FileTreeNode key={item.path} fileNode={item} />
+            ))}
         </div>
     )
 }
