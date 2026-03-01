@@ -4,6 +4,7 @@ import { ChevronRightIcon, FileIcon, FolderIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useExplorerStore } from "@/store/explorer";
+import { useWorkspaceStore } from "@/store/workspace";
 
 export interface FileNode {
     name: string,
@@ -43,7 +44,10 @@ const FileTreeNode: React.FC<{ fileNode: FileNode}> = ({ fileNode }) => {
     // Retrieve hooks for expanding folders
     const { expandedFolders, toggleFolder } = useExplorerStore();
 
-    // Chick if this folder is marked as open
+    // Retrieve hook for adding tabs
+    const { addTab } = useWorkspaceStore();
+
+    // Check if this folder is marked as open
     const isOpen = expandedFolders[fileNode.path] || false;
 
     if (fileNode.is_dir) {
@@ -75,9 +79,16 @@ const FileTreeNode: React.FC<{ fileNode: FileNode}> = ({ fileNode }) => {
     return (
         <Button
         key={fileNode.name}
-        variant="link"
+        variant="ghost"
         size="sm"
         className="text-foreground w-full justify-start gap-2"
+        onClick={() => {
+            addTab({
+                id: fileNode.path,
+                title: fileNode.name,
+                type: 'file'
+            })
+        }}
       >
         <FileIcon />
         <span>{fileNode.name}</span>

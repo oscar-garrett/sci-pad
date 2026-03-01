@@ -6,7 +6,7 @@ export type RightView = 'notes' | 'outline' | 'links' | null;
 export interface Tab {
   id: string;          // e.g., 'exp-123', 'db-primers'
   title: string;       // e.g., 'Experiment 1', 'Primer Database'
-  type: 'experiment' | 'database' | 'protocol'; 
+  type: 'experiment' | 'database' | 'protocol' | 'file'; 
 }
 
 interface WorkspaceState {
