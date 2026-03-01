@@ -40,12 +40,15 @@ function buildTree(flatList: FileNode[]): FileNode[] {
 }
 
 const FileTreeNode: React.FC<{ fileNode: FileNode}> = ({ fileNode }) => {
-    // Track if this specific folder is open
-    const [isOpen, setIsOpen] = useState(false)
+    // Retrieve hooks for expanding folders
+    const { expandedFolders, toggleFolder } = useExplorerStore();
+
+    // Chick if this folder is marked as open
+    const isOpen = expandedFolders[fileNode.path] || false;
 
     if (fileNode.is_dir) {
         return (
-        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <Collapsible open={isOpen} onOpenChange={(open) => toggleFolder(fileNode.path, open)}>
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"

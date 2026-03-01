@@ -26,7 +26,7 @@ function LeftSidebar() {
             sidebarContent = <GraphExplorer/>; 
             break;
         case null: 
-        default: // Always good to have a fallback!
+        default:
             sidebarContent = <FileTree targetPath="C:\Users\oscar\software_projects"/>; 
             break;
     }
