@@ -26,6 +26,7 @@ interface WorkspaceState {
   addTab: (tab: Tab) => void;
   closeTab: (tabId: string) => void;
   setActiveTab: (tabId: string) => void;
+  reorderTabs: (activeId: string, overId: string) => void;
 }
 
 export const useWorkspaceStore = create<WorkspaceState>((set) => ({
@@ -74,4 +75,18 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   }),
 
   setActiveTab: (tabId) => set({ activeTabId: tabId }),
+  
+  reorderTabs: (activeId, overId) => set((state) => {
+    const oldIndex = state.openTabs.findIndex(t => t.id === activeId);
+    const newIndex = state.openTabs.findIndex(t => t.id === overId);
+    
+    if (oldIndex === -1 || newIndex === -1) return state;
+
+    // Standard array swap
+    const newTabs = [...state.openTabs];
+    const [movedTab] = newTabs.splice(oldIndex, 1);
+    newTabs.splice(newIndex, 0, movedTab);
+
+    return { openTabs: newTabs };
+  }),
 }));

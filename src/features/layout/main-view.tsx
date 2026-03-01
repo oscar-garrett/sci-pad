@@ -1,9 +1,50 @@
 import { Button } from "@/components/ui/button";
-import { useWorkspaceStore } from "@/store/workspace";
+import { Tab, useWorkspaceStore } from "@/store/workspace";
 import { X } from "lucide-react";
+import { useSortable } from "@dnd-kit/react/sortable"
+import { DragDropProvider } from "@dnd-kit/react";
+
+// Draggable tab component
+function SortableTab({ tab, isActive, index }: { tab: Tab; isActive: boolean; index: number }) {
+  const { setActiveTab, closeTab } = useWorkspaceStore();
+  
+  // Define a sortable reference
+  const { ref } = useSortable({ 
+    id: tab.id, 
+    index 
+  });
+
+  return (
+    <div
+      ref={ref} // Link up the sortable reference
+      onPointerDown={() => setActiveTab(tab.id)}
+      className={`group flex items-center gap-2 px-3 py-2 min-w-[120px] max-w-[200px] border-r border-border select-none cursor-pointer ${
+        isActive
+          ? "bg-accent text-accent-foreground border-t-2 border-border"
+          : "bg-transparent text-muted-foreground hover:bg-muted"
+      }`}
+    >
+      <span className="truncate text-sm flex-1">{tab.title}</span>
+
+      <Button
+        size="icon-xs"
+        variant="ghost"
+        onPointerDown={(e) => {
+          e.stopPropagation(); // Stop drag AND click from bubbling
+          closeTab(tab.id);
+        }}
+        className={`p-0.5 rounded-md hover:bg-accent-foreground transition-opacity z-10 ${
+          isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        }`}
+      >
+        <X className="size-3" />
+      </Button>
+    </div>
+  );
+}
 
 function MainView() {
-  const { openTabs, activeTabId, setActiveTab, closeTab } = useWorkspaceStore();
+  const { openTabs, activeTabId, reorderTabs } = useWorkspaceStore();
 
   // Render the empty state
   if (openTabs.length === 0) {
@@ -17,40 +58,30 @@ function MainView() {
   // Find the content we should actually be rendering
   const activeTabContent = openTabs.find(t => t.id === activeTabId);
 
-  return (
+return (
     <div className="flex flex-col h-full bg-background">
       
-      {/* Construct the tab bar */}
+      {/* --- THE TAB BAR --- */}
       <div className="flex overflow-x-auto no-scrollbar border-b border-border bg-background">
-        {openTabs.map((tab) => (
-          <div
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`group flex items-center gap-2 px-3 py-2 min-w-[120px] max-w-[200px] border-r border-border select-none ${
-              activeTabId === tab.id
-                ? "bg-accent text-accent-foreground border-t-2" // Active Tab
-                : "bg-transparent text-muted-foreground hover:bg-muted"        // Inactive Tab
-            }`}
-          >
-            {/* Tab Title */}
-            <span className="truncate text-sm flex-1">{tab.title}</span>
-            
-            {/* Close Button */}
-            <Button
-              size="icon-xs"
-              variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent the click from also triggering setActiveTab
-                closeTab(tab.id);
-              }}
-              className={`p-0.5 rounded-md hover:bg-accent-foreground transition-opacity cursor-pointer ${
-                activeTabId === tab.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-              }`}
-            >
-              <X className="size-3" />
-            </Button>
-          </div>
-        ))}
+        {/* Define drag and drop area using dnd-kit */}
+        <DragDropProvider
+          onDragEnd={(event) => {
+            const { source, target } = event.operation;
+            if (source && target && source.id !== target.id) {
+              reorderTabs(source.id as string, target.id as string);
+            }
+          }}
+        >
+            {/* Create a sortable tab for each open tab */}
+            {openTabs.map((tab, index) => ( 
+              <SortableTab
+                key={tab.id}
+                tab={tab}
+                index={index}
+                isActive={activeTabId === tab.id}
+              />
+            ))}
+        </DragDropProvider>
       </div>
 
       {/* --- THE CONTENT AREA --- */}
