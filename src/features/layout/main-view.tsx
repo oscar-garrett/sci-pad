@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tab, useWorkspaceStore } from "@/store/workspace";
 import { X } from "lucide-react";
 import { useSortable } from "@dnd-kit/react/sortable"
 import { DragDropProvider } from "@dnd-kit/react";
+import { invoke } from "@tauri-apps/api/core";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Draggable tab component
 function SortableTab({ tab, isActive, index }: { tab: Tab; isActive: boolean; index: number }) {
@@ -39,6 +42,52 @@ function SortableTab({ tab, isActive, index }: { tab: Tab; isActive: boolean; in
       >
         <X className="size-3" />
       </Button>
+    </div>
+  );
+}
+
+// --- CONTENT VIEWER ---
+function FileViewer({ filepath }: { filepath: string }) {
+  const [content, setContent] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchContent() {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Call our new Rust command
+        const text: string = await invoke("read_file_content", { path: filepath });
+        setContent(text);
+      } catch (e) {
+        console.error("Failed to read file:", e);
+        setError(String(e));
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (filepath) {
+      fetchContent();
+    }
+  }, [filepath]); // Re-run whenever the filepath changes
+
+  if (loading) {
+    return <div className="p-8 text-muted-foreground animate-pulse">Loading file contents...</div>;
+  }
+
+  if (error) {
+    return <div className="p-8 text-red-500">Error: {error}</div>;
+  }
+
+  return (
+    <div className="p-8 max-w-4xl mx-auto">
+      {/* We use a 'pre' tag for now so it respects whitespace and line breaks in your code/markdown files */}
+      <pre className="whitespace-pre-wrap font-mono text-sm text-foreground bg-muted/20 p-6 rounded-md border border-border">
+        {content}
+      </pre>
     </div>
   );
 }
@@ -85,24 +134,24 @@ return (
       </div>
 
       {/* --- THE CONTENT AREA --- */}
-      <div className="flex-1 overflow-y-auto">
-        {activeTabContent && (
-          <div className="p-8 max-w-4xl mx-auto">
-            {/* Placeholder for now! */}
-            <h1 className="text-3xl font-bold text-foreground mb-4">
-              {activeTabContent.title}
-            </h1>
-            <p className="text-muted-foreground">
-              Type: {activeTabContent.type} <br/>
-              File Path: {activeTabContent.id}
-            </p>
+      <ScrollArea className="flex-1 overflow-y-auto">
+        {activeTabContent ? (
+          <div>
+            {/* Optional: You can keep the title header here, or move it inside FileViewer */}
+            {/* <div className="px-8 pt-8 max-w-4xl mx-auto">
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  {activeTabContent.title}
+                </h1>
+                <p className="text-muted-foreground text-sm mb-4">
+                  {activeTabContent.id}
+                </p>
+            </div> */}
             
-            <div className="mt-8 p-4 border border-border rounded-md bg-muted/50 text-muted-foreground">
-              [ TipTap Editor goes here ]
-            </div>
+            {/* Mount the viewer and pass it the file path */}
+            <FileViewer filepath={activeTabContent.id} />
           </div>
-        )}
-      </div>
+        ) : null}
+      </ScrollArea>
       
     </div>
   );

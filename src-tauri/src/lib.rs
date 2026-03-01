@@ -1,5 +1,6 @@
 use serde::Serialize;
 use walkdir::WalkDir;
+use std::fs;
 
 #[derive(Serialize)]
 struct FileNode {
@@ -7,6 +8,12 @@ struct FileNode {
     path: String,
     is_dir: bool, 
     parent_path: Option<String>,
+}
+
+#[tauri::command]
+fn read_file_content(path: String) -> Result<String, String> {
+    // Attempt to read the file, and if it fails, convert the error to a String
+    fs::read_to_string(&path).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -40,7 +47,10 @@ fn get_file_tree(target_path: String) -> Result<Vec<FileNode>, String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![get_file_tree])
+        .invoke_handler(tauri::generate_handler![
+            get_file_tree,
+            read_file_content
+            ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
