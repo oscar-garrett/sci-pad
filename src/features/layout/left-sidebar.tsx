@@ -14,7 +14,7 @@ function LeftSidebar() {
 
     switch (activeLeftView) {
         case "explorer": 
-            sidebarContent = <FileTree targetPath="C:\Users\oscar\software_projects"/>; 
+            sidebarContent = <FileTree targetPath="C:\Users\oscar\software_projects\sci-pad\test_vault"/>; 
             break;
         case "protocols": 
             sidebarContent = <ProtocolExplorer/>; 
@@ -27,7 +27,7 @@ function LeftSidebar() {
             break;
         case null: 
         default:
-            sidebarContent = <FileTree targetPath="C:\Users\oscar\software_projects"/>; 
+            sidebarContent = <FileTree targetPath="C:\Users\oscar\software_projects\sci-pad\test_vault"/>; 
             break;
     }
 

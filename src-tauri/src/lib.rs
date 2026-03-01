@@ -11,6 +11,12 @@ struct FileNode {
 }
 
 #[tauri::command]
+fn write_file_content(path: String, content: String) -> Result<(), String> {
+    // Overwrites the file with the new content, returning an error string if it fails
+    std::fs::write(&path, content).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn read_file_content(path: String) -> Result<String, String> {
     // Attempt to read the file, and if it fails, convert the error to a String
     fs::read_to_string(&path).map_err(|e| e.to_string())
@@ -49,7 +55,8 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_file_tree,
-            read_file_content
+            read_file_content,
+            write_file_content,
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

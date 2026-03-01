@@ -2,7 +2,12 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from 'tiptap-markdown';
 
-export function MarkdownEditor({ initialContent }: { initialContent: string }) {
+export function MarkdownEditor({ 
+    initialContent, 
+    onChange 
+}: { 
+    initialContent: string, onChange: (markdown: string) => void;
+ }) {
   const editor = useEditor({
     // Load tiptap extensions
     extensions: [
@@ -11,6 +16,13 @@ export function MarkdownEditor({ initialContent }: { initialContent: string }) {
     ],
     // Pass in the raw text from the hard drive
     content: initialContent,
+
+    // Each time the document changes, convert the editor contents to markdown
+    onUpdate: ({ editor }) => {
+        const markdown = (editor.storage as any).markdown.getMarkdown();
+        onChange(markdown);
+    },
+
     // Style the editor area
     editorProps: {
       attributes: {
